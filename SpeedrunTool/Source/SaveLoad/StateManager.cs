@@ -309,9 +309,9 @@ public sealed class StateManager {
             Logger.Debug("SpeedrunTool", $"MemoryUsage: {memorySize:0.00} GB");
         }
 #endif
+
         return true;
     }
-
 
     internal static float MemoryThreshold = 2.5f; // GB
 

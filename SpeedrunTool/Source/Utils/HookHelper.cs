@@ -1,4 +1,4 @@
-﻿using MonoMod.Cil;
+using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using System.Collections.Generic;
 using System.Reflection;
@@ -32,7 +32,7 @@ internal static class HookHelper {
 }
 
 internal static class DetourContextHelper {
-    public static IDisposable Use(string ID = "SpeedrunTool", int? priority = null, IEnumerable<string>? Before = null, IEnumerable<string>? After = null) {
-        return new DetourConfigContext(new DetourConfig(ID, priority, Before, After)).Use();
+    public static IDisposable Use(string id = "SpeedrunTool", int? priority = null, IEnumerable<string>? before = null, IEnumerable<string>? after = null) {
+        return new DetourConfigContext(new DetourConfig(id, priority, before, after)).Use();
     }
 }

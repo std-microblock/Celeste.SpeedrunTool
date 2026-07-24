@@ -11,6 +11,7 @@ internal static class Config {
 
     // Assets
     public const bool Log_Assets = false;
+    public const bool Log_IDisposable = true;
 
     // Profile
     public const bool JetBrains_Profiling = false;

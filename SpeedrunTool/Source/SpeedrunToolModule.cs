@@ -52,7 +52,7 @@ public class SpeedrunToolModule : EverestModule {
             "/ https://discord.com/channels/403698615446536203/1523162448675340369" +
             "/ https://discord.com/channels/403698615446536203/1145455251495845949/1525818371998748783" +
             "/ SSC4 中 Aqua mod 开启似乎就会导致 SL 很卡, 不过仅限于前几次? 但是不开 Aqua 就没事" +
-            "/ EmoteMod 传送, 最好还是以特性形式修一半";
+            "/ 似乎初次 SL 之后直接 ClearState, 再 SL 就不怎么卡? 以及 lag spike 似乎也会减少";
 
         throw new NotImplementedException(todo);
 #endif

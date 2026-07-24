@@ -63,6 +63,14 @@ public static class DeepClonerUtils {
             return true;
         }
 
+#if DEBUG
+        if (Log_IDisposable) {
+            if (typeof(IDisposable).IsAssignableFrom(Nullable.GetUnderlyingType(type) ?? type)) {
+                throw new Exception($"{type} is IDisposable and should not be cloned!");
+            }
+        }
+#endif
+
         if (SaveLoadInterop.CanReturnSameObject(type)) {
             return true;
         }

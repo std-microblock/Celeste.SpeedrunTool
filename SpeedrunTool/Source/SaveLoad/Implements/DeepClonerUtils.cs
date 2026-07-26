@@ -63,6 +63,11 @@ public static class DeepClonerUtils {
             return true;
         }
 
+        if (SaveLoadInterop.CanReturnSameObject(type)) {
+            return true;
+        }
+
+
 #if DEBUG
         if (Log_IDisposable) {
             if (typeof(IDisposable).IsAssignableFrom(Nullable.GetUnderlyingType(type) ?? type)) {
@@ -70,10 +75,6 @@ public static class DeepClonerUtils {
             }
         }
 #endif
-
-        if (SaveLoadInterop.CanReturnSameObject(type)) {
-            return true;
-        }
 
         return null;
     }

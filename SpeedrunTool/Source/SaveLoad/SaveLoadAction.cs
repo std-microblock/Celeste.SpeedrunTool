@@ -168,7 +168,7 @@ public sealed class SaveLoadAction {
     }
 
     internal static void Remove(Func<SaveLoadAction, bool> predicate) {
-        List<SaveLoadAction> toRemove = new List<SaveLoadAction>();
+        List<SaveLoadAction> toRemove = [];
         foreach (SaveLoadAction action in SharedActions) {
             if (predicate(action)) {
                 toRemove.Add(action);
@@ -196,14 +196,16 @@ public sealed class SaveLoadAction {
     }
 
     internal static void OnClearState(bool clearBeforeSave = false) {
-        if (clearBeforeSave) {
-            Dictionary<int, Dictionary<Type, Dictionary<string, object>>> dict = AllSavedValues;
-            foreach (SaveLoadAction saveLoadAction in SharedActions) {
-                foreach (KeyValuePair<Type, Dictionary<string, object>> pair in dict[saveLoadAction.dictionaryId]) {
+        Dictionary<int, Dictionary<Type, Dictionary<string, object>>> dict = AllSavedValues;
+        foreach (SaveLoadAction saveLoadAction in SharedActions) {
+            if (dict.TryGetValue(saveLoadAction.dictionaryId, out Dictionary<Type, Dictionary<string, object>> innerDict)){
+                foreach (KeyValuePair<Type, Dictionary<string, object>> pair in innerDict) {
                     pair.Value.Clear();
                     // avoid creating new Dictionary instances
                 }
             }
+        }
+        if (clearBeforeSave) {
             slotInitialized = true;
         }
         else {
@@ -332,7 +334,7 @@ public sealed class SaveLoadAction {
 
         // anyway, we rebuild the dictionary
         if (needInitializeDictionaryId) {
-            SharedActions = SharedActions.OrderBy(x => x.executeOrder).ToList(); // it's a stable sort
+            SharedActions = [.. SharedActions.OrderBy(x => x.executeOrder)]; // it's a stable sort
             int i = 0;
             foreach (SaveLoadAction action in SharedActions) {
                 i++;
@@ -362,6 +364,7 @@ public sealed class SaveLoadAction {
     }
 
 #if DEBUG
+#pragma warning disable IDE0060 // 删除未使用的参数
     internal static void LogSavedValues(Level level) {
         System.Text.StringBuilder sb = new();
 
@@ -397,7 +400,7 @@ public sealed class SaveLoadAction {
 
         void AppendInstanceField(Type type, object obj) {
             // modified from DeepClonerMsilGenerator.GenerateClonerInternal
-            List<FieldInfo> list = new List<FieldInfo>();
+            List<FieldInfo> list = [];
             Type tp = type;
             do {
                 // don't do anything with this dark magic!
@@ -427,11 +430,12 @@ public sealed class SaveLoadAction {
             return str.PadRight(targetLength);
         }
     }
+#pragma warning restore IDE0060 // 删除未使用的参数
 #endif
 
     private static void InitFields() {
-        simpleStaticFields = new Dictionary<Type, FieldInfo[]>();
-        modModuleFields = new Dictionary<Type, FieldInfo[]>();
+        simpleStaticFields = [];
+        modModuleFields = [];
 
         IEnumerable<Type> types = ModUtils.GetAllTypes().Where(type =>
             !type.IsGenericType
@@ -443,7 +447,7 @@ public sealed class SaveLoadAction {
 
         foreach (Type type in types) {
             try {
-                FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+                FieldInfo[] fieldInfos = [.. type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                     .Where(info => {
                         Type fieldType = info.FieldType; // might throw exception
                         return !info.IsConst() && fieldType.IsSimpleClass(genericType =>
@@ -464,7 +468,7 @@ public sealed class SaveLoadAction {
                             || genericType.IsSubclassOf(typeof(Renderer))
                             || genericType.IsSubclassOf(typeof(VirtualAsset))
                         );
-                    }).ToArray();
+                    })];
 
                 if (fieldInfos.Length == 0) {
                     continue;
@@ -493,8 +497,8 @@ public sealed class SaveLoadAction {
     private static void InitModuleFields() {
         foreach (EverestModule everestModule in Everest.Modules) {
             Type type = everestModule.GetType();
-            List<FieldInfo> staticFields = new();
-            List<FieldInfo> instanceFields = new();
+            List<FieldInfo> staticFields = [];
+            List<FieldInfo> instanceFields = [];
 
             FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
             foreach (FieldInfo fieldInfo in fieldInfos.Where(info => {
@@ -514,11 +518,11 @@ public sealed class SaveLoadAction {
             }
 
             if (staticFields.Count > 0) {
-                simpleStaticFields[type] = staticFields.ToArray();
+                simpleStaticFields[type] = [.. staticFields];
             }
 
             if (instanceFields.Count > 0) {
-                modModuleFields[type] = instanceFields.ToArray();
+                modModuleFields[type] = [.. instanceFields];
             }
         }
     }
@@ -526,8 +530,7 @@ public sealed class SaveLoadAction {
     private static void InitExtendedVariantsFields() {
         if (ModUtils.GetType("ExtendedVariantMode", "ExtendedVariants.Variants.AbstractExtendedVariant") is { } variantType) {
             foreach (Type type in variantType.Assembly.GetTypesSafe().Where(type => type.IsSubclassOf(variantType))) {
-                FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Where(info => !info.IsConst() && info.FieldType.IsSimpleClass()).ToArray();
+                FieldInfo[] fieldInfos = [.. type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).Where(info => !info.IsConst() && info.FieldType.IsSimpleClass())];
 
                 if (fieldInfos.Length == 0) {
                     continue;
@@ -544,7 +547,7 @@ public sealed class SaveLoadAction {
         // 例如未安装 DJMapHelper 时 ExtendedVariantsMode 的 AutoDestroyingReverseOshiroModder.stateMachine
         // 不止会有 TargetInvocationException, 此外 LeniencyHelper 还会有未绑定泛型参数造成的异常
         foreach (Type type in simpleStaticFields.Keys.ToArray()) {
-            FieldInfo[] fieldInfos = simpleStaticFields[type].Where(info => {
+            FieldInfo[] fieldInfos = [.. simpleStaticFields[type].Where(info => {
                 try {
                     info.GetValue(null);
                     return true;
@@ -552,7 +555,7 @@ public sealed class SaveLoadAction {
                 catch {
                     return false;
                 }
-            }).ToArray();
+            })];
 
             if (fieldInfos.Length > 0) {
                 simpleStaticFields[type] = fieldInfos;
@@ -569,7 +572,7 @@ public sealed class SaveLoadAction {
                 foreach (Type type in simpleStaticFields.Keys) {
                     FieldInfo[] fieldInfos = simpleStaticFields[type];
                     // Logger.Debug("SpeedrunTool", "\n\n" + string.Join("\n", fieldInfos.Select(info => type.FullName + " " + info.Name + " " + info.FieldType)));
-                    Dictionary<string, object> values = new();
+                    Dictionary<string, object> values = [];
 
                     foreach (FieldInfo fieldInfo in fieldInfos) {
                         values[fieldInfo.Name] = fieldInfo.GetValue(null);
@@ -594,7 +597,7 @@ public sealed class SaveLoadAction {
         InternalSafeAdd(
             (savedValues, _) => {
                 foreach (EverestModule module in Everest.Modules) {
-                    Dictionary<string, object> dict = new();
+                    Dictionary<string, object> dict = [];
                     Type moduleType = module.GetType();
                     if (modModuleFields.TryGetValue(moduleType, out FieldInfo[] moduleFields)) {
                         foreach (FieldInfo fieldInfo in moduleFields) {
@@ -686,9 +689,10 @@ public sealed class SaveLoadAction {
         InternalSafeAdd(
             (savedValues, _) => {
                 if (Settings.Instance is { } settings) {
-                    Dictionary<string, object> dict = new();
-                    dict[nameof(Settings.GrabMode)] = settings.GrabMode;
-                    dict[nameof(Settings.CrouchDashMode)] = settings.CrouchDashMode;
+                    Dictionary<string, object> dict = new() {
+                        [nameof(Settings.GrabMode)] = settings.GrabMode,
+                        [nameof(Settings.CrouchDashMode)] = settings.CrouchDashMode
+                    };
                     savedValues[typeof(Settings)] = dict;
                 }
             },
@@ -721,7 +725,7 @@ public sealed class SaveLoadAction {
             (savedValues, _) => {
                 SaveStaticMemberValues(savedValues, typeof(MInput), nameof(MInput.VirtualInputs));
 
-                Dictionary<string, object> inputDict = new();
+                Dictionary<string, object> inputDict = [];
                 foreach (FieldInfo fieldInfo in typeof(Input).GetFields(BindingFlags.Public | BindingFlags.Static).Where(info =>
                              info.FieldType.IsSameOrSubclassOf(typeof(VirtualInput)))) {
                     inputDict[fieldInfo.Name] = fieldInfo.GetValue(null);
@@ -745,7 +749,7 @@ public sealed class SaveLoadAction {
                         continue;
                     }
 
-                    Dictionary<string, object> settingsDict = new();
+                    Dictionary<string, object> settingsDict = [];
                     foreach (PropertyInfo propertyInfo in settingsType.GetProperties(BindingFlags.Public | BindingFlags.Instance)) {
                         if (propertyInfo.PropertyType != typeof(ButtonBinding)) {
                             continue;

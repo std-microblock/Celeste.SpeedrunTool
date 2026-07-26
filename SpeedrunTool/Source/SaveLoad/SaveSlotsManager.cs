@@ -236,18 +236,18 @@ public class SaveSlot {
 
     public bool ValueDictionaryInitialized = false;
 
-    public Dictionary<int, Dictionary<Type, Dictionary<string, object>>> AllSavedValues = new();
+    public Dictionary<int, Dictionary<Type, Dictionary<string, object>>> AllSavedValues = [];
 
-    public readonly List<EventInstance> ClonedEventInstancesWhenSave = new();
-    public readonly List<EventInstance> ClonedEventInstancesWhenPreClone = new();
+    public readonly List<EventInstance> ClonedEventInstancesWhenSave = [];
+    public readonly List<EventInstance> ClonedEventInstancesWhenPreClone = [];
 
     public SaveSlot(string name) {
         Name = name;
         ValueDictionaryInitialized = false;
-        AllSavedValues = new();
+        AllSavedValues = [];
         StateManager = new();
         StateManager.SlotName = Name;
-        ClonedEventInstancesWhenSave = new();
-        ClonedEventInstancesWhenPreClone = new();
+        ClonedEventInstancesWhenSave = [];
+        ClonedEventInstancesWhenPreClone = [];
     }
 }

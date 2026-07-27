@@ -12,10 +12,12 @@ internal static class Config {
     // Assets
     public const bool Log_Assets = false;
     public const bool Log_IDisposable = true;
+    public const bool IDisposable_ThrowException = false;
 
     // Profile
     public const bool JetBrains_Profiling = false;
     public const bool InGame_Profiling = true;
+    public const bool MemoryTracker_Profiling = false;
 
 
     [Load]

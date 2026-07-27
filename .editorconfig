@@ -346,3 +346,6 @@ csharp_style_expression_bodied_local_functions = false:silent
 csharp_prefer_simple_using_statement = true:suggestion
 csharp_space_around_binary_operators = before_and_after
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
+
+[*.{cs,vb}]
+dotnet_diagnostic.IDE0130.severity = none

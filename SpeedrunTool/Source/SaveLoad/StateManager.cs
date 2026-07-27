@@ -21,7 +21,6 @@ public sealed class StateManager {
 
     internal static bool AllowSaveLoadWhenWaiting = false;
 
-    // public for tas
     public bool IsSaved => savedLevel != null;
     public State State { get; private set; } = State.None;
     public bool SavedByTas { get; private set; }
@@ -178,6 +177,7 @@ public sealed class StateManager {
             ClearBeforeSave = false;
         }
 #if DEBUG
+        DebugTool.MemoryTracker.Mark("Save Start");
         Stopwatch sw = new Stopwatch();
         sw.Start();
 #endif
@@ -226,6 +226,7 @@ public sealed class StateManager {
         if (Log_WhenSaving) {
             SaveLoadAction.LogSavedValues(level: savedLevel);
         }
+        DebugTool.MemoryTracker.Mark("Save End");
 #endif
 
         return true;
@@ -256,6 +257,7 @@ public sealed class StateManager {
         }
 
 #if DEBUG
+        DebugTool.MemoryTracker.Mark("Load Start");
         if (Log_WhenLoading) {
             SaveLoadAction.LogSavedValues(level: savedLevel);
         }
@@ -284,6 +286,7 @@ public sealed class StateManager {
         SaveLoadAction.OnLoadState(level);
 
         PreCloneSavedEntities();
+
         if (!tas && ModSettings.GcAfterLoadState) {
             GcCollect(force: false);
         }
@@ -308,6 +311,7 @@ public sealed class StateManager {
             float memorySize = ((float)Process.GetCurrentProcess().PrivateMemorySize64) / (1024L * 1024L * 1024L);
             Logger.Debug("SpeedrunTool", $"MemoryUsage: {memorySize:0.00} GB");
         }
+        DebugTool.MemoryTracker.Mark("Load End");
 #endif
 
         return true;
@@ -342,11 +346,17 @@ public sealed class StateManager {
         static void GcCollectCore() {
             // 以现在卡顿一些为代价, 保证之后游戏流程中尽量不卡顿 (后者更致命)
             // 作为推论, 我们不应该放在其他线程执行此事
+#if DEBUG
+            DebugTool.MemoryTracker.Mark("GC Start");
+#endif
             Stopwatch sw = Stopwatch.StartNew();
             GC.Collect();
             GC.WaitForPendingFinalizers();
+            // 这里一般也没太多 IDisposable, 所以我们不再跑一次 GC.Collect()
             sw.Stop();
-            Logger.Info("SpeedrunTool", $"GC latency: {sw.ElapsedMilliseconds}ms.");
+#if DEBUG
+            DebugTool.MemoryTracker.Mark("GC End");
+#endif
         }
     }
 
@@ -495,12 +505,12 @@ public sealed class StateManager {
         celesteProcess = null;
         SaveLoadAction.OnClearState(ClearBeforeSave);
         State = State.None;
+        MoreSaveSlotsUI.Snapshot.RemoveSnapshot(SlotName);
         // 2025.10.08 fix: clear 之后读档更加卡顿 (这个问题在老版本好像也有, 之前在这里压根不 Gc)
         // 2025.10.19: 不过似乎不是每个人都喜欢卡顿一下, 姑且先做成可选项, 使得用户可以保留之前的体验
         if (hasGc && ModSettings.GcAfterClearState) {
             GcCollect(force: true);
         }
-        MoreSaveSlotsUI.Snapshot.RemoveSnapshot(SlotName);
         if (doSomething) {
             Logger.Info("SpeedrunTool/ClearState", $"Clear {FullSlotDescription}");
         }

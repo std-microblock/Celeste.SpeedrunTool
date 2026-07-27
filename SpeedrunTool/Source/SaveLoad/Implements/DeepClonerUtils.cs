@@ -43,6 +43,12 @@ public static class DeepClonerUtils {
             || type == typeof(BitTag)
             || type == typeof(Atlas)
 
+            // 应该是可以直接使用原对象的. 但还有待测试
+            // TileGrid.Tiles
+            || type == typeof(VirtualMap<MTexture>)
+            // Level.SolidData / BgData
+            || type == typeof(VirtualMap<char>)
+
             // XNA GraphicsResource
             || type.IsSubclassOf(typeof(GraphicsResource))
 
@@ -71,7 +77,12 @@ public static class DeepClonerUtils {
 #if DEBUG
         if (Log_IDisposable) {
             if (typeof(IDisposable).IsAssignableFrom(Nullable.GetUnderlyingType(type) ?? type)) {
-                throw new Exception($"{type} is IDisposable and should not be cloned!");
+                if (IDisposable_ThrowException) {
+                    throw new Exception($"{type} is IDisposable and should not be cloned!");
+                }
+                else {
+                    Logger.Warn("SpeedrunTool/DeepClonerUtils", $"{type} is IDisposable and should not be cloned!");
+                }
             }
         }
 #endif

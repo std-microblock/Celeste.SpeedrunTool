@@ -40,7 +40,7 @@ internal static class GraphicResourcesHandler {
         internal static void ReloadVirtualAssets() {
             SaveLoadAction.InternalSafeAdd(
                 loadState: static (_, level) => {
-                    List<VirtualAsset> list = new List<VirtualAsset>(VirtualAssets);
+                    List<VirtualAsset> list = [.. VirtualAssets];
                     // if load too frequently and switching between different slots, then collection might be modified? idk
                     // so we avoid the crash in this way
 
@@ -83,11 +83,13 @@ internal static class GraphicResourcesHandler {
             SaveLoadAction.InternalSafeAdd(
                 loadState: static (_, level) => {
                     if (level.Tracker.GetEntitiesTrackIfNeeded<WaveDashPresentation>() is { } list && list.IsNotNullOrEmpty()) {
+#pragma warning disable IDE0220 // 添加显式转换
                         foreach (WaveDashPresentation presentation in list) {
                             presentation.Gfx?.Dispose();
                             presentation.Gfx = Atlas.FromAtlas(Path.Combine("Graphics", "Atlases", "WaveDashing"), Atlas.AtlasDataFormat.Packer);
                             presentation.loading = false;
                         }
+#pragma warning restore IDE0220 // 添加显式转换
                     }
                 }
             );

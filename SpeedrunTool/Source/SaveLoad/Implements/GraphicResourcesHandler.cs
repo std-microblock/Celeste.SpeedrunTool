@@ -30,6 +30,16 @@ internal static class GraphicResourcesHandler {
         }
     }
 
+    private static class BackDropHandler {
+        /*
+         * BackDrop (用于前景, 背景) 虽然会 Update, 但是不太有必要克隆它的状态
+         * 不过直接用原对象好像会出问题, 我暂时还不知道怎么处理
+         */
+        private static void Handle() {
+            throw new NotImplementedException();
+        }
+    }
+
     private static class VirtualAssetsHandler {
 
         private static readonly List<VirtualAsset> VirtualAssets = []; // added and cleared when loading, so no need to be individual
@@ -78,6 +88,7 @@ internal static class GraphicResourcesHandler {
     private static class AtlasHandler {
 
         // This Fixes: WaveDashPresentation 中存档, 结束, 再读档, 会崩溃
+        // 这里本来想写个通用的版本的, 但最后 bug 太多, 所以就先这样了
 
         [Initialize]
         private static void Initialize() {

@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -287,10 +288,6 @@ public sealed class StateManager {
 
         PreCloneSavedEntities();
 
-        if (!tas && ModSettings.GcAfterLoadState) {
-            GcCollect(force: false);
-        }
-
         if (tas) {
             LoadStateComplete(level);
         }
@@ -299,6 +296,10 @@ public sealed class StateManager {
             RestoreLevelTime(level);
             FreezeGame(FreezeType.Load);
             DoScreenWipe(level);
+        }
+
+        if (!tas && ModSettings.GcAfterLoadState) {
+            GcCollect(force: false);
         }
 
         popup = $"Load from [{SlotName}]";
@@ -350,10 +351,12 @@ public sealed class StateManager {
             DebugTool.MemoryTracker.Mark("GC Start");
 #endif
             Stopwatch sw = Stopwatch.StartNew();
+            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect();
             GC.WaitForPendingFinalizers();
             // 这里一般也没太多 IDisposable, 所以我们不再跑一次 GC.Collect()
             sw.Stop();
+            Logger.Info("SpeedrunTool", $"GC latency: {sw.ElapsedMilliseconds}ms.");
 #if DEBUG
             DebugTool.MemoryTracker.Mark("GC End");
 #endif
@@ -483,8 +486,6 @@ public sealed class StateManager {
     }
 
     internal bool ClearStateImpl(bool hasGc = true) {
-        // TODO: 这里 Task.Wait() 可能可以试着让它更快结束?
-
         preCloneTask?.Wait();
 
         // fix: 读档冻结时被TAS清除状态后无法解除冻结

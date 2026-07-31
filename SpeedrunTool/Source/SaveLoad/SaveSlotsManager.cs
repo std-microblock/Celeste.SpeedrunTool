@@ -124,7 +124,7 @@ internal static class SaveSlotsManager {
             anySaved = anySaved || slot.StateManager.IsSaved;
             Slot = slot; // 由于 clearState action 可能依赖于 slot, 所以这是必要的
             SlotName = Slot.Name; // Name 当然也要同步修改
-            ClearState();
+            StateManagerInstance.ClearStateImpl(hasGc: false);
         }
         Dictionary = [];
 

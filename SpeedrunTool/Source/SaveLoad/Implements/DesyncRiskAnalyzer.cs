@@ -118,6 +118,7 @@ internal static class DesyncRiskAnalyzer {
                     throw new Exception($"{nameof(DesyncRiskAnalyzer)}: {type} is not a subclass of Entity!");
                 }
                 EarlyCheckEntityTypes.Add(type);
+                Tracker.AddTypeToTracker(type);
             }
             else {
                 EarlyCheckSpecialHandlers[type] = func;

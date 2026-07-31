@@ -494,6 +494,9 @@ public static class TeleportRoomUtils {
         });
         // WarpPedestal 或者 StrawberryJamJar 都是在 added 期间创建 ChapterPanelTrigger 的
         // 这绕过了 LoadCustomEntity 期间添加 SourceData 的流程, 因此我们自行添加 SourceData
+        if (ChapterPanelTriggerType.Value is { } type) {
+            Tracker.AddTypeToTracker(type);
+        }
 
         static void SetSourceData(Entity e, EntityData data) {
             data.Name ??= "CollabUtils2/ChapterPanelTrigger";

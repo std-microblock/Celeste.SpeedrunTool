@@ -79,6 +79,11 @@ internal static class GraphicResourcesHandler {
 
         // This Fixes: WaveDashPresentation 中存档, 结束, 再读档, 会崩溃
 
+        [Initialize]
+        private static void Initialize() {
+            Tracker.AddTypeToTracker(typeof(WaveDashPresentation));
+        }
+
         internal static void AddAction() {
             SaveLoadAction.InternalSafeAdd(
                 loadState: static (_, level) => {

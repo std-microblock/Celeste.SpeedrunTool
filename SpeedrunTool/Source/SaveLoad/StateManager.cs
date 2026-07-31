@@ -40,7 +40,11 @@ public sealed class StateManager {
     public string SlotName;
     public string SlotDescription = "";
     public string FullSlotDescription => string.IsNullOrWhiteSpace(SlotDescription) ? $"[{SlotName}]" : $"[{SlotName}],  {SlotDescription}";
-
+    private static string GenerateSlotDescription() {
+        string levelInfo = Engine.Scene.GetSession() is { } session ? $"'{session.Area.SID} [{session.Level}]'" : "";
+        string frames = Engine.Scene is not null ? "(frame: " + (int)Math.Round(Engine.Scene.RawTimeActive / 0.0166667) + ")" : "";
+        return levelInfo + frames;
+    }
     private enum FreezeType {
         None,
         Save,
@@ -66,6 +70,7 @@ public sealed class StateManager {
         On.Celeste.Level.TransitionRoutine -= On_LevelTransitionRoutine;
         On.Celeste.Level.End -= LevelOnEnd;
     }
+
     private static void IL_LevelTransitionRoutine(ILContext context) {
         ILCursor cursor = new(context);
         if (cursor.TryGotoNext(MoveType.After, ins => ins.OpCode == OpCodes.Newobj && ins.Operand.ToString().Contains("Level/<TransitionRoutine>"))) {
@@ -179,8 +184,7 @@ public sealed class StateManager {
         }
 #if DEBUG
         DebugTool.MemoryTracker.Mark("Save Start");
-        Stopwatch sw = new Stopwatch();
-        sw.Start();
+        Stopwatch sw = Stopwatch.StartNew();
 #endif
 
         SaveLoadAction.InitSlots();
@@ -216,11 +220,10 @@ public sealed class StateManager {
         }
 
         popup = $"Save to [{SlotName}]";
-        SetSlotDescription();
+        SlotDescription = GenerateSlotDescription();
         Logger.Info("SpeedrunTool/SaveState", $"Save to {FullSlotDescription}");
 
 #if DEBUG
-        sw.Stop();
         if (InGame_Profiling) {
             Logger.Debug("SpeedrunTool", $"Save in {sw.ElapsedMilliseconds} ms");
         }
@@ -231,12 +234,6 @@ public sealed class StateManager {
 #endif
 
         return true;
-    }
-
-    private void SetSlotDescription() {
-        string levelInfo = Engine.Scene.GetSession() is { } session ? $"'{session.Area.SID} [{session.Level}]'" : "";
-        string frames = Engine.Scene is not null ? "(frame: " + (int)Math.Round(Engine.Scene.RawTimeActive / 0.0166667) + ")" : "";
-        SlotDescription = levelInfo + frames;
     }
 
 
@@ -262,8 +259,7 @@ public sealed class StateManager {
         if (Log_WhenLoading) {
             SaveLoadAction.LogSavedValues(level: savedLevel);
         }
-        Stopwatch sw = new Stopwatch();
-        sw.Start();
+        Stopwatch sw = Stopwatch.StartNew();
 #endif
 
         LoadByTas = tas;
@@ -276,6 +272,7 @@ public sealed class StateManager {
         UpdateTimeAndDeaths(level);
         UnloadLevel(level);
 
+        Tracker.Refresh(savedLevel); // 不能在 OnLoadState 里做. 否则多次读档会需要反复 Refresh Tracker
         savedLevel.DeepCloneToShared(level);
         SaveData.Instance = savedSaveData.DeepCloneShared();
         if (savedTransitionRoutine != null) {
@@ -306,7 +303,6 @@ public sealed class StateManager {
         Logger.Info("SpeedrunTool/LoadState", $"Load from {FullSlotDescription}");
 
 #if DEBUG
-        sw.Stop();
         if (InGame_Profiling) {
             Logger.Debug("SpeedrunTool", $"Load in {sw.ElapsedMilliseconds} ms");
             float memorySize = ((float)Process.GetCurrentProcess().PrivateMemorySize64) / (1024L * 1024L * 1024L);
@@ -318,6 +314,40 @@ public sealed class StateManager {
         return true;
     }
 
+    internal bool ClearStateImpl(bool hasGc = true) {
+        preCloneTask?.Wait();
+
+        // fix: 读档冻结时被TAS清除状态后无法解除冻结
+        if (State == State.Waiting && Engine.Scene is Level level) {
+            OutOfFreeze(level);
+        }
+
+        playingEventInstances.Clear();
+        bool doSomething = savedLevel is not null;
+        if (!doSomething) {
+            hasGc = false;
+        }
+        savedLevel = null;
+        savedSaveData = null;
+        preCloneTask = null;
+        savedTransitionRoutine = null;
+        celesteProcess?.Dispose();
+        celesteProcess = null;
+        SaveLoadAction.OnClearState(ClearBeforeSave);
+        State = State.None;
+        MoreSaveSlotsUI.Snapshot.RemoveSnapshot(SlotName);
+        // 2025.10.08 fix: clear 之后读档更加卡顿 (这个问题在老版本好像也有, 之前在这里压根不 Gc)
+        // 2025.10.19: 不过似乎不是每个人都喜欢卡顿一下, 姑且先做成可选项, 使得用户可以保留之前的体验
+        if (hasGc && ModSettings.GcAfterClearState) {
+            GcCollect(force: true);
+        }
+        if (doSomething) {
+            Logger.Info("SpeedrunTool/ClearState", $"Clear {FullSlotDescription}");
+        }
+        SlotDescription = "";
+        return doSomething;
+    }
+
     internal static float MemoryThreshold = 2.5f; // GB
 
     internal void GcCollect(bool force = false) {
@@ -325,7 +355,6 @@ public sealed class StateManager {
         force = force || MemoryThreshold < 1f;
         if (force) {
             Logger.Log("SpeedrunTool", "Force GC Collecting...");
-            celesteProcess ??= Process.GetCurrentProcess();
             GcCollectCore();
         }
         else {
@@ -355,7 +384,6 @@ public sealed class StateManager {
             GC.Collect();
             GC.WaitForPendingFinalizers();
             // 这里一般也没太多 IDisposable, 所以我们不再跑一次 GC.Collect()
-            sw.Stop();
             Logger.Info("SpeedrunTool", $"GC latency: {sw.ElapsedMilliseconds}ms.");
 #if DEBUG
             DebugTool.MemoryTracker.Mark("GC End");
@@ -483,40 +511,6 @@ public sealed class StateManager {
                 sfx.start();
             }
         }
-    }
-
-    internal bool ClearStateImpl(bool hasGc = true) {
-        preCloneTask?.Wait();
-
-        // fix: 读档冻结时被TAS清除状态后无法解除冻结
-        if (State == State.Waiting && Engine.Scene is Level level) {
-            OutOfFreeze(level);
-        }
-
-        playingEventInstances.Clear();
-        bool doSomething = savedLevel is not null;
-        if (!doSomething) {
-            hasGc = false;
-        }
-        savedLevel = null;
-        savedSaveData = null;
-        preCloneTask = null;
-        savedTransitionRoutine = null;
-        celesteProcess?.Dispose();
-        celesteProcess = null;
-        SaveLoadAction.OnClearState(ClearBeforeSave);
-        State = State.None;
-        MoreSaveSlotsUI.Snapshot.RemoveSnapshot(SlotName);
-        // 2025.10.08 fix: clear 之后读档更加卡顿 (这个问题在老版本好像也有, 之前在这里压根不 Gc)
-        // 2025.10.19: 不过似乎不是每个人都喜欢卡顿一下, 姑且先做成可选项, 使得用户可以保留之前的体验
-        if (hasGc && ModSettings.GcAfterClearState) {
-            GcCollect(force: true);
-        }
-        if (doSomething) {
-            Logger.Info("SpeedrunTool/ClearState", $"Clear {FullSlotDescription}");
-        }
-        SlotDescription = "";
-        return doSomething;
     }
 
     private void PreCloneSavedEntities() {

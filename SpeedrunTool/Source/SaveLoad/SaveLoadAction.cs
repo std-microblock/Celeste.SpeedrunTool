@@ -6,6 +6,7 @@ using Celeste.Mod.SpeedrunTool.Utils;
 using FMOD.Studio;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -183,16 +184,38 @@ public sealed class SaveLoadAction {
 
     internal static void OnSaveState(Level level) {
         Dictionary<int, Dictionary<Type, Dictionary<string, object>>> dict = AllSavedValues;
+#if DEBUG
+        Stopwatch sw = Stopwatch.StartNew();
+        foreach (SaveLoadAction saveLoadAction in SharedActions) {
+            sw.Restart();
+            saveLoadAction.saveState?.Invoke(dict[saveLoadAction.dictionaryId], level);
+            if (sw.ElapsedMilliseconds > 10 && EachAction_Profilling) {
+                Logger.Debug($"SpeedrunTool/Save", $"{sw.ElapsedMilliseconds, 3} ms, [{saveLoadAction.dictionaryId}] {saveLoadAction.ActionDescription}");
+            }
+        }
+#else
         foreach (SaveLoadAction saveLoadAction in SharedActions) {
             saveLoadAction.saveState?.Invoke(dict[saveLoadAction.dictionaryId], level);
         }
+#endif
     }
 
     internal static void OnLoadState(Level level) {
         Dictionary<int, Dictionary<Type, Dictionary<string, object>>> dict = AllSavedValues;
+#if DEBUG
+        Stopwatch sw = Stopwatch.StartNew();
+        foreach (SaveLoadAction saveLoadAction in SharedActions) {
+            sw.Restart();
+            saveLoadAction.loadState?.Invoke(dict[saveLoadAction.dictionaryId], level);
+            if (sw.ElapsedMilliseconds > 10 && EachAction_Profilling) {
+                Logger.Debug($"SpeedrunTool/Load", $"{sw.ElapsedMilliseconds, 3} ms, [{saveLoadAction.dictionaryId}] {saveLoadAction.ActionDescription}");
+            }
+        }
+#else
         foreach (SaveLoadAction saveLoadAction in SharedActions) {
             saveLoadAction.loadState?.Invoke(dict[saveLoadAction.dictionaryId], level);
         }
+#endif
     }
 
     internal static void OnClearState(bool clearBeforeSave = false) {
@@ -295,7 +318,6 @@ public sealed class SaveLoadAction {
         }
 
         contextOrder = Order_InternalCoreAction;
-        SupportTracker();
         InitFields();
         SupportSimpleStaticFields();
         SupportModModuleFields();
@@ -379,7 +401,7 @@ public sealed class SaveLoadAction {
             }
         }
 
-        if (Log_SavedLevel) {
+        if (Log_SavedLevelEntities) {
             sb.Append("\n======  Saved Level (Part) ======");
             sb.Append("\n[0] Level\n");
             AppendInstanceField(typeof(Level), level);
@@ -952,15 +974,6 @@ public sealed class SaveLoadAction {
                 }
             }
         });
-    }
-
-    private static void SupportTracker() {
-        InternalSafeAdd(
-            loadState: (_, level) => {
-                Tracker.Refresh(level);
-
-            }
-        );
     }
 
     private static void ReleaseEventInstances() {

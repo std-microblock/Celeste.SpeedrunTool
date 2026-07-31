@@ -77,8 +77,10 @@ public static class DeepClonerUtils {
 #if DEBUG
         if (Log_IDisposable) {
             if (typeof(IDisposable).IsAssignableFrom(Nullable.GetUnderlyingType(type) ?? type)) {
-                if (IDisposable_ThrowException) {
-                    throw new Exception($"{type} is IDisposable and should not be cloned!");
+                if (type.IsCompilerGenerated()) {
+                    Logger.Debug("SpeedrunTool/DeepClonerUtils", $"{type} is CompilerGenerated IDisposable, check if it could be cloned safely!");
+                    // 比如由返回值 IEnumerator 的方法生成的类, 就是 IDisposable.
+                    // 如果方法内部没有 using / try-finally, 那么就不持有资源, 不 Dispose 也没事
                 }
                 else {
                     Logger.Warn("SpeedrunTool/DeepClonerUtils", $"{type} is IDisposable and should not be cloned!");

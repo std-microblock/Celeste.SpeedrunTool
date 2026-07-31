@@ -17,5 +17,11 @@ internal static class TestCommand {
         // do anything you want to test here
         StateManager.Instance.ClearStateImpl(hasGc: true);
     }
+
+    [Command("mark_srt", "SpeedrunTool debug test")]
+    public static void Mark() {
+        // do anything you want to test here
+        MemoryTracker.Mark("test");
+    }
 }
 #endif

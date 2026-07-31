@@ -87,7 +87,7 @@ public static class SaveLoadInterop {
         /// </summary>
         /// <param name="entityType">Ignored entity</param>
         /// <param name="based">The Added/Removed method of the entity will not be triggered when based is true</param>
-        /// appear in v3.28
+        /// appear in v3.27.15
         public static void IgnoreSaveState(Type entityType, bool based = false) {
             IgnoreSaveLoadComponent.Ignore(entityType, based);
         }
@@ -95,7 +95,7 @@ public static class SaveLoadInterop {
         /// <summary>
         /// Determine which type needs to return the same object when deep cloning.
         /// </summary>
-        /// appear in v3.28
+        /// appear in v3.27.15
         public static void AddReturnSameObjectType(Type type) {
             if (type.IsSameOrSubclassOf(typeof(Entity))) {
                 IgnoreSaveLoadComponent.Ignore(type, false);
@@ -108,7 +108,7 @@ public static class SaveLoadInterop {
         /// <summary>
         /// Remove previously added type.
         /// </summary>
-        /// appear in v3.28
+        /// appear in v3.27.15
         public static void RemoveReturnSameObjectType(Type type) {
             if (type.IsSameOrSubclassOf(typeof(Entity))) {
                 IgnoreSaveLoadComponent.RemoveIgnore(type);

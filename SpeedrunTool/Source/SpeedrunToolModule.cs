@@ -35,10 +35,7 @@ public class SpeedrunToolModule : EverestModule {
 
     public override void Load() {
 #if RELEASE_HIDDEN
-        string todo = "Boss Desync (应该好了)" +
-            "/ ModSupportNotWell (应该正常了)" +
-            "/ 此外也测一测 entity removed 到底发挥作用没有, 特别是带 hook 副作用的 (目测有, 懒得测了)" +
-            "/ ModInterop 加入 IgnoreSaveLoad/ReturnSameObject(type) 的版本 (应该好了)" +
+        string todo = 
             "/ 引入 Trigger, 使得可以告诉 SRT 哪些关卡是可以安全地存档的 (LuaCutscene 相关). 并在 SRT 发布时告诉 jesss#6307" +
             "       可能此事也加入 ModInterop" +
             "/ 引入 Trigger 或者某种全局实体, 使得可以告诉 SRT 传送的顺序" +

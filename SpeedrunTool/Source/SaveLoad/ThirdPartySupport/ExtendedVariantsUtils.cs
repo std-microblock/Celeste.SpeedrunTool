@@ -50,12 +50,12 @@ internal static class ExtendedVariantsUtils {
             return;
         }
 
-        List<PropertyInfo> settingProperties = settingsType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+        List<PropertyInfo> settingProperties = [.. settingsType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
             .Where(property => property.CanRead
                                && property.CanWrite
                                && property.GetCustomAttribute<SettingIgnoreAttribute>() != null
                                && !property.Name.StartsWith("Display")
-            ).ToList();
+            )];
 
         SaveLoadAction.InternalSafeAdd(
             saveState: (savedValues, _) => {
@@ -63,7 +63,7 @@ internal static class ExtendedVariantsUtils {
                     return;
                 }
 
-                Dictionary<string, object> dict = new();
+                Dictionary<string, object> dict = [];
                 foreach (PropertyInfo property in settingProperties) {
                     dict[property.Name] = property.GetValue(settingsInstance);
                 }

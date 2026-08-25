@@ -37,7 +37,6 @@ public sealed class SaveLoadAction {
 
     internal static Dictionary<int, Dictionary<Type, Dictionary<string, object>>> AllSavedValues {
         get => SaveSlotsManager.Slot.AllSavedValues;
-
         set {
             SaveSlotsManager.Slot.AllSavedValues = value;
         }
@@ -600,7 +599,8 @@ public sealed class SaveLoadAction {
 
                     dictionary[type] = values.DeepCloneShared();
                 }
-            }, (dictionary, _) => {
+            },
+            (dictionary, _) => {
                 Dictionary<Type, Dictionary<string, object>> clonedDict = dictionary.DeepCloneShared();
                 foreach (Type type in clonedDict.Keys) {
                     Dictionary<string, object> values = clonedDict[type];
@@ -637,7 +637,8 @@ public sealed class SaveLoadAction {
                         }
                     }
                 }
-            });
+            }
+        );
     }
 
     private static void FixSaveLoadIcon() {
@@ -677,6 +678,7 @@ public sealed class SaveLoadAction {
     private static void SupportExternalMember() {
         InternalSafeAdd(
             (savedValues, _) => {
+#pragma warning disable CS0618 // 类型或成员已过时
                 SaveStaticMemberValues(savedValues, typeof(Engine),
                     nameof(Engine.DashAssistFreeze),
                     nameof(Engine.DashAssistFreezePress),
@@ -688,6 +690,7 @@ public sealed class SaveLoadAction {
                     nameof(Engine.TimeRateB),
                     nameof(Engine.Pooler)
                 );
+#pragma warning restore CS0618 // 类型或成员已过时
                 SaveStaticMemberValues(savedValues, typeof(Glitch), nameof(Glitch.Value));
                 SaveStaticMemberValues(savedValues, typeof(Distort), nameof(Distort.Anxiety), nameof(Distort.GameRate));
                 SaveStaticMemberValues(savedValues, typeof(ScreenWipe), nameof(ScreenWipe.WipeColor));
@@ -695,14 +698,16 @@ public sealed class SaveLoadAction {
                 // Fixed: Game crashes after save PandorasBoxUtils.DustSpriteColorController
                 SaveStaticMemberValues(savedValues, typeof(DustStyles), nameof(DustStyles.Styles));
             },
-            (savedValues, _) => LoadStaticMemberValues(savedValues));
+            (savedValues, _) => LoadStaticMemberValues(savedValues)
+        );
     }
 
     private static void SupportCalcRandom() {
         InternalSafeAdd(
             (savedValues, _) => SaveStaticMemberValues(savedValues, typeof(Calc),
                 nameof(Calc.Random), nameof(Calc.randomStack)),
-            (savedValues, _) => LoadStaticMemberValues(savedValues));
+            (savedValues, _) => LoadStaticMemberValues(savedValues)
+        );
     }
 
     private static void SupportSettings() {
@@ -735,7 +740,8 @@ public sealed class SaveLoadAction {
 
                 // 关闭手柄震动
                 MInput.GamePads[Input.Gamepad].Rumble(0f, 0f);
-            });
+            }
+        );
     }
 
     // Fix https://github.com/DemoJameson/CelesteSpeedrunTool/issues/19
@@ -830,7 +836,7 @@ public sealed class SaveLoadAction {
                             continue;
                         }
 
-                        if (!savedValues.TryGetValue(settingsType, out var settingsDict)) {
+                        if (!savedValues.TryGetValue(settingsType, out Dictionary<string, object> settingsDict)) {
                             continue;
                         }
 
@@ -913,7 +919,8 @@ public sealed class SaveLoadAction {
                         module._SaveData = dictionary["_SaveData"] as EverestModuleSaveData;
                     }
                 }
-            });
+            }
+        );
     }
 
     private static void SupportAudioMusic() {

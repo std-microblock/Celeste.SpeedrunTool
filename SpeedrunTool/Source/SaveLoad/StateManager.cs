@@ -1,4 +1,4 @@
-using Celeste.Mod.SpeedrunTool.ModInterop;
+﻿using Celeste.Mod.SpeedrunTool.ModInterop;
 using Celeste.Mod.SpeedrunTool.Utils;
 using Force.DeepCloner;
 using Force.DeepCloner.Helpers;
@@ -403,6 +403,12 @@ public sealed class StateManager {
         // 等效于 Level.UnloadEntities 然后 UpdateLists
 
         foreach (Entity entity in entities.Distinct()) {
+            // TODO: 确定到底哪些 Global entity 可以移除
+            // 这里知道的是 MirrorSurfaces 被移除会导致一些 VirtualRenderTarget Dispose
+            // 于是如果在存档 1 存档, 在存档 2 清除, 再读档 1, 会崩溃
+            if (entity.TagCheck(Tags.Global) && !GlobalEntitiesToRemove.Contains(entity.GetType())) {
+                continue;
+            }
             try {
                 entity.Removed(level); // 触发各式各样的副作用
                 // Scene.TagLists / Scene.Tracker / Engine.Pooler 本身都将被克隆出来, 大部分情况下无需处理. 同理也不用 UpdateLists
@@ -415,6 +421,18 @@ public sealed class StateManager {
             catch (NullReferenceException) {
                 // ignore https://discord.com/channels/403698615446536203/954507384183738438/954507384183738438
             }
+        }
+
+        // 移除剩下声音组件
+        level.Tracker.GetComponentsCopy<SoundSource>().ForEach(component => component.RemoveSelf());
+    }
+
+    private static readonly HashSet<Type> GlobalEntitiesToRemove = [typeof(CassetteBlockManager)];
+
+    [Initialize]
+    private static void InitGlobalEntitiesToRemove() {
+        if (ModUtils.GetType("SpirialisHelper", "Celeste.Mod.Spirialis.TimeController") is { } timeControllerType) {
+            GlobalEntitiesToRemove.Add(timeControllerType);
         }
     }
 

@@ -1,4 +1,4 @@
-using Celeste.Mod.SpeedrunTool.SaveLoad;
+﻿using Celeste.Mod.SpeedrunTool.SaveLoad;
 using FMOD.Studio;
 
 namespace Celeste.Mod.SpeedrunTool;
@@ -49,7 +49,8 @@ public class SpeedrunToolModule : EverestModule {
             "/ https://discord.com/channels/403698615446536203/1523162448675340369" +
             "/ https://discord.com/channels/403698615446536203/1145455251495845949/1525818371998748783" +
             "/ SSC4 中 Aqua mod 开启似乎就会导致 SL 很卡, 不过仅限于前几次? 但是不开 Aqua 就没事" +
-            "/ 似乎初次 SL 之后直接 ClearState, 再 SL 就不怎么卡? 以及 lag spike 似乎也会减少";
+            "/ 似乎初次 SL 之后直接 ClearState, 再 SL 就不怎么卡? 以及 lag spike 似乎也会减少" +
+            "/ 可能考虑重写 StateManager.UnloadLevel(), 想办法直接避免触发一些 hook 卸载/加载的副作用?";
 
         throw new NotImplementedException(todo);
 #endif

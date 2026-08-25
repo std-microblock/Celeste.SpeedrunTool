@@ -1,4 +1,4 @@
-using Celeste.Mod.SpeedrunTool.DeathStatistics;
+﻿using Celeste.Mod.SpeedrunTool.DeathStatistics;
 using Celeste.Mod.SpeedrunTool.RoomTimer;
 using Celeste.Mod.SpeedrunTool.SaveLoad.ThirdPartySupport;
 using Celeste.Mod.SpeedrunTool.SaveLoad.Utils;
@@ -6,7 +6,6 @@ using Celeste.Mod.SpeedrunTool.Utils;
 using FMOD.Studio;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 

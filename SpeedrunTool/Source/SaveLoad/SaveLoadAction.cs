@@ -183,7 +183,7 @@ public sealed class SaveLoadAction {
     internal static void OnSaveState(Level level) {
         Dictionary<int, Dictionary<Type, Dictionary<string, object>>> dict = AllSavedValues;
 #if DEBUG
-        Stopwatch sw = Stopwatch.StartNew();
+        System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
         foreach (SaveLoadAction saveLoadAction in SharedActions) {
             sw.Restart();
             saveLoadAction.saveState?.Invoke(dict[saveLoadAction.dictionaryId], level);
@@ -201,7 +201,7 @@ public sealed class SaveLoadAction {
     internal static void OnLoadState(Level level) {
         Dictionary<int, Dictionary<Type, Dictionary<string, object>>> dict = AllSavedValues;
 #if DEBUG
-        Stopwatch sw = Stopwatch.StartNew();
+        System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
         foreach (SaveLoadAction saveLoadAction in SharedActions) {
             sw.Restart();
             saveLoadAction.loadState?.Invoke(dict[saveLoadAction.dictionaryId], level);

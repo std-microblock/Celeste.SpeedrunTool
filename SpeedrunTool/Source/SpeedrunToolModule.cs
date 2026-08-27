@@ -50,11 +50,13 @@ public class SpeedrunToolModule : EverestModule {
             "/ https://discord.com/channels/403698615446536203/1145455251495845949/1525818371998748783" +
             "/ SSC4 中 Aqua mod 开启似乎就会导致 SL 很卡, 不过仅限于前几次? 但是不开 Aqua 就没事" +
             "/ 似乎初次 SL 之后直接 ClearState, 再 SL 就不怎么卡? 以及 lag spike 似乎也会减少" +
-            "/ 可能考虑重写 StateManager.UnloadLevel(), 想办法直接避免触发一些 hook 卸载/加载的副作用?";
+            "/ 可能考虑重写 StateManager.UnloadLevel(), 想办法直接避免触发一些 hook 卸载/加载的副作用?" +
+            "/ ServerGC ?" +
+            "/ DC 上说死亡时按确认会导致没有复活在存档的地方";
 
         throw new NotImplementedException(todo);
 #endif
-
+        
         SaveSlotsManager.SwitchSlot(1); // i don't want to do a bunch of nullity checks
         StateManager.Load();
         AttributeUtils.Invoke<LoadAttribute>();

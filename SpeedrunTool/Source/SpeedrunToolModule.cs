@@ -34,29 +34,6 @@ public class SpeedrunToolModule : EverestModule {
     public override Type SaveDataType => typeof(SpeedrunToolSaveData);
 
     public override void Load() {
-#if RELEASE_HIDDEN
-        string todo = 
-            "/ 引入 Trigger, 使得可以告诉 SRT 哪些关卡是可以安全地存档的 (LuaCutscene 相关). 并在 SRT 发布时告诉 jesss#6307" +
-            "       可能此事也加入 ModInterop" +
-            "/ 引入 Trigger 或者某种全局实体, 使得可以告诉 SRT 传送的顺序" +
-            "/ SRT 群反馈的问题" +
-            "/ speedrun tool 计时器升级优化 (见 dc 私信)" +
-            "/ 安全账户反应的吃心 1f 误差问题" +
-            "/ 试着在 Busy 的时候多在控制台 log 一点东西" +
-            "/ 跨 level 的 sl 还是很危险, 比如月之佛塔里外存档, 读档的时候会发现估计是资源没加载之类的问题" +
-            "/ (如果还是没做好的话, AutoClearStateOnSceneSwitch 在 Menu 里先隐藏掉. 目前是设置的 DEBUG 作为 flag)" +
-            "/ https://discord.com/channels/403698615446536203/1520883580933374124/1521136713005662258" +
-            "/ https://discord.com/channels/403698615446536203/1523162448675340369" +
-            "/ https://discord.com/channels/403698615446536203/1145455251495845949/1525818371998748783" +
-            "/ SSC4 中 Aqua mod 开启似乎就会导致 SL 很卡, 不过仅限于前几次? 但是不开 Aqua 就没事" +
-            "/ 似乎初次 SL 之后直接 ClearState, 再 SL 就不怎么卡? 以及 lag spike 似乎也会减少" +
-            "/ 可能考虑重写 StateManager.UnloadLevel(), 想办法直接避免触发一些 hook 卸载/加载的副作用?" +
-            "/ ServerGC ?" +
-            "/ DC 上说死亡时按确认会导致没有复活在存档的地方";
-
-        throw new NotImplementedException(todo);
-#endif
-        
         SaveSlotsManager.SwitchSlot(1); // i don't want to do a bunch of nullity checks
         StateManager.Load();
         AttributeUtils.Invoke<LoadAttribute>();

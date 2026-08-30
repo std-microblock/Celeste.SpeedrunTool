@@ -186,9 +186,13 @@ public sealed class SaveLoadAction {
         System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
         foreach (SaveLoadAction saveLoadAction in SharedActions) {
             sw.Restart();
+            var before = DebugTool.MemoryTracker.TakeGcSample();
             saveLoadAction.saveState?.Invoke(dict[saveLoadAction.dictionaryId], level);
             if (sw.ElapsedMilliseconds > 10 && EachAction_Profilling) {
-                Logger.Debug($"SpeedrunTool/Save", $"{sw.ElapsedMilliseconds, 3} ms, [{saveLoadAction.dictionaryId}] {saveLoadAction.ActionDescription}");
+                Logger.Debug($"SpeedrunTool/Save",
+                    $"{sw.ElapsedMilliseconds, 3} ms, " +
+                    $"{DebugTool.MemoryTracker.FormatDiff(before, DebugTool.MemoryTracker.TakeGcSample(), simplified: true)},    " +
+                    $"[{saveLoadAction.dictionaryId}] {saveLoadAction.ActionDescription}");
             }
         }
 #else
@@ -204,9 +208,13 @@ public sealed class SaveLoadAction {
         System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
         foreach (SaveLoadAction saveLoadAction in SharedActions) {
             sw.Restart();
+            var before = DebugTool.MemoryTracker.TakeGcSample();
             saveLoadAction.loadState?.Invoke(dict[saveLoadAction.dictionaryId], level);
             if (sw.ElapsedMilliseconds > 10 && EachAction_Profilling) {
-                Logger.Debug($"SpeedrunTool/Load", $"{sw.ElapsedMilliseconds, 3} ms, [{saveLoadAction.dictionaryId}] {saveLoadAction.ActionDescription}");
+                Logger.Debug($"SpeedrunTool/Load",
+                    $"{sw.ElapsedMilliseconds,3} ms, " +
+                    $"{DebugTool.MemoryTracker.FormatDiff(before, DebugTool.MemoryTracker.TakeGcSample(), simplified: true)},    " +
+                    $"[{saveLoadAction.dictionaryId}] {saveLoadAction.ActionDescription}");
             }
         }
 #else

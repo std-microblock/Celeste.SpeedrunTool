@@ -183,7 +183,8 @@ public sealed class StateManager {
             ClearBeforeSave = false;
         }
 #if DEBUG
-        DebugTool.MemoryTracker.Mark("Save Start");
+        DebugTool.MemoryTracker.CheckFragmentation("Save Start");
+        DebugTool.MemoryTracker.GcSample before = DebugTool.MemoryTracker.TakeGcSample();
         Stopwatch sw = Stopwatch.StartNew();
 #endif
 
@@ -225,12 +226,14 @@ public sealed class StateManager {
 
 #if DEBUG
         if (InGame_Profiling) {
-            Logger.Debug("SpeedrunTool", $"Save in {sw.ElapsedMilliseconds} ms");
+            Logger.Debug("SpeedrunTool", $"{"Save", 20}: {sw.ElapsedMilliseconds,7} ms");
+            Logger.Debug("SpeedrunTool", $"{"Allocated", 20}: {DebugTool.MemoryTracker.FormatDiff(before, DebugTool.MemoryTracker.TakeGcSample(), simplified: false)}");
+            Logger.Debug("SpeedrunTool", $"{"ProcessMemoryUsage", 20}: {Process.GetCurrentProcess().PrivateMemorySize64 / 1024.0 / 1024.0 / 1024.0,7:F2} GB");
         }
+        DebugTool.MemoryTracker.CheckFragmentation("Save End");
         if (Log_WhenSaving) {
             SaveLoadAction.LogSavedValues(level: savedLevel);
         }
-        DebugTool.MemoryTracker.Mark("Save End");
 #endif
 
         return true;
@@ -255,10 +258,11 @@ public sealed class StateManager {
         }
 
 #if DEBUG
-        DebugTool.MemoryTracker.Mark("Load Start");
         if (Log_WhenLoading) {
             SaveLoadAction.LogSavedValues(level: savedLevel);
         }
+        DebugTool.MemoryTracker.CheckFragmentation("Load Start");
+        DebugTool.MemoryTracker.GcSample before = DebugTool.MemoryTracker.TakeGcSample();
         Stopwatch sw = Stopwatch.StartNew();
 #endif
 
@@ -304,11 +308,11 @@ public sealed class StateManager {
 
 #if DEBUG
         if (InGame_Profiling) {
-            Logger.Debug("SpeedrunTool", $"Load in {sw.ElapsedMilliseconds} ms");
-            float memorySize = ((float)Process.GetCurrentProcess().PrivateMemorySize64) / (1024L * 1024L * 1024L);
-            Logger.Debug("SpeedrunTool", $"MemoryUsage: {memorySize:0.00} GB");
+            Logger.Debug("SpeedrunTool", $"{"Load",20}: {sw.ElapsedMilliseconds,7} ms");
+            Logger.Debug("SpeedrunTool", $"{"Allocated",20}: {DebugTool.MemoryTracker.FormatDiff(before, DebugTool.MemoryTracker.TakeGcSample(), simplified: false)}");
+            Logger.Debug("SpeedrunTool", $"{"ProcessMemoryUsage",20}: {Process.GetCurrentProcess().PrivateMemorySize64 / 1024.0 / 1024.0 / 1024.0,7:F2} GB");
         }
-        DebugTool.MemoryTracker.Mark("Load End");
+        DebugTool.MemoryTracker.CheckFragmentation("Load End");
 #endif
 
         return true;
@@ -368,7 +372,7 @@ public sealed class StateManager {
             // 使用内存超过阈值才回收垃圾
             float memorySize = ((float)celesteProcess.PrivateMemorySize64) / (1024L * 1024L * 1024L);
             if (memorySize > MemoryThreshold) {
-                Logger.Info("SpeedrunTool", $"MemoryUsage: {memorySize:0.00} GB > Threshold: {MemoryThreshold:0.00} GB. Waiting for GC Collecting...");
+                Logger.Info("SpeedrunTool", $"ProcessMemoryUsage: {memorySize:0.00} GB > Threshold: {MemoryThreshold:0.00} GB. Waiting for GC Collecting...");
                 GcCollectCore();
             }
         }
@@ -377,7 +381,7 @@ public sealed class StateManager {
             // 以现在卡顿一些为代价, 保证之后游戏流程中尽量不卡顿 (后者更致命)
             // 作为推论, 我们不应该放在其他线程执行此事
 #if DEBUG
-            DebugTool.MemoryTracker.Mark("GC Start");
+            DebugTool.MemoryTracker.CheckFragmentation("GC Start");
 #endif
             Stopwatch sw = Stopwatch.StartNew();
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
@@ -386,7 +390,7 @@ public sealed class StateManager {
             // 这里一般也没太多 IDisposable, 所以我们不再跑一次 GC.Collect()
             Logger.Info("SpeedrunTool", $"GC latency: {sw.ElapsedMilliseconds}ms.");
 #if DEBUG
-            DebugTool.MemoryTracker.Mark("GC End");
+            DebugTool.MemoryTracker.CheckFragmentation("GC End");
 #endif
         }
     }

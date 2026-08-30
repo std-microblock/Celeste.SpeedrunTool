@@ -18,7 +18,7 @@ internal static class TestCommand {
     [Command("mark_srt", "SpeedrunTool debug test")]
     public static void Mark() {
         // do anything you want to test here
-        MemoryTracker.Mark("test");
+        MemoryTracker.CheckFragmentation("test");
     }
 
     [Initialize]

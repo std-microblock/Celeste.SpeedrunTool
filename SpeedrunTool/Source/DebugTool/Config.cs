@@ -17,7 +17,7 @@ internal static class Config {
     public const bool JetBrains_Profiling = false;
     public const bool InGame_Profiling = true;
     public const bool EachAction_Profilling = true;
-    public const bool MemoryTracker_Profiling = true;
+    public const bool MemoryTracker_CheckFragmentation = true;
 
 
     [Load]

@@ -1,4 +1,4 @@
-using Celeste.Mod.SpeedrunTool.Utils;
+﻿using Celeste.Mod.SpeedrunTool.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -110,7 +110,6 @@ internal static class ThirdParty {
                 new TypeFieldsTuple("VivHelper.Entities.RefillCancel", "inSpace", "DashRefillRestrict", "DashRestrict", "StaminaRefillRestrict", "p"),
                 new TypeFieldsTuple("VivHelper.Entities.SpeedPowerup", "Store", "Launch"),
                 new TypeFieldsTuple("VivHelper.Entities.BooMushroom", "color", "mode"),
-                new TypeFieldsTuple("VivHelper.Entities.Boosters.BoostFunctions", "dyn"),
                 new TypeFieldsTuple("VivHelper.Entities.Boosters.OrangeBoost", "timer"),
                 new TypeFieldsTuple("VivHelper.Entities.Boosters.PinkBoost", "timer"),
                 new TypeFieldsTuple("VivHelper.Entities.Boosters.WindBoost", "timer"),
@@ -130,7 +129,7 @@ internal static class ThirdParty {
         private static void IsaGrabBagSupport() {
             // 解决读档后冲进 DreamSpinner 会被刺死
             CloneModTypeFields("IsaGrabBag",
-                new TypeFieldsTuple("Celeste.Mod.IsaGrabBag.GrabBagModule", "ZipLineState", "playerInstance"),
+                new TypeFieldsTuple("Celeste.Mod.IsaGrabBag.GrabBagModule", "playerInstance"),
                 new TypeFieldsTuple("Celeste.Mod.IsaGrabBag.BadelineFollower", "booster", "LookForBubble")
             );
         }

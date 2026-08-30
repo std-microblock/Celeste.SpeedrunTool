@@ -183,29 +183,40 @@ public static class DeepClonerUtils {
 
             // 手动克隆 ConditionalWeakTable<TKey, TValue>
             // 之前好像不能正确支持 SMH+ v1.7.2 (尽管 SMH+ 自己内部写的也有问题)
-            if (type.IsConditionalWeakTable(out Type weakTableKeyType, out _)) {
-                object weakTable = Activator.CreateInstance(type);
+            if (type.IsConditionalWeakTable(out Type weakTableKeyType, out Type weakTableValueType)) {
+                // 目前已知需要克隆 ConditionalWeakTable 的有:
+                // SkinModHelperPlus:   ConditionalWeakTable<Sprite, List<Object>>
+                // Aqua:                ConditionalWeakTable<Entity, DataContainer>   . 其中 Key 包含了 **所有** 实体
+
                 // 当 key 是 Level 时, 由于 SRT 克隆不同的 Level 对象时都会返回 Engine.Scene, 所以可能会出问题
                 // 导致只能 TryAdd 而非 Add
                 // https://discord.com/channels/403698615446536203/1520883580933374124/1521136713005662258
-                MethodInfo addMethod = type.GetMethodInfo("TryAdd");
+                FastReflectionHelper.FastInvoker addMethod = type.GetMethodDelegate("TryAdd");
+                object weakTable = Activator.CreateInstance(type);
 
                 // Entity-keyed CWTs are commonly used as per-entity dynamic
                 // state. Only clone entries whose keys are part of the saved
                 // object graph; stale entries from previous rooms otherwise
                 // make a single save traverse and clone the entire history.
                 bool onlyKnownEntityKeys = weakTableKeyType.IsSameOrSubclassOf(typeof(Entity));
+
+                Type kvpType = typeof(KeyValuePair<,>).MakeGenericType(weakTableKeyType, weakTableValueType);
+                FastReflectionHelper.FastInvoker keyGetter = kvpType.GetFieldInfo("key").GetFastInvoker();
+                FastReflectionHelper.FastInvoker valueGetter = kvpType.GetFieldInfo("value").GetFastInvoker();
+                object[] args = new object[2];
                 foreach (object kvp in (IEnumerable)sourceObj) {
-                    object sourceKey = kvp.GetPropertyValue("Key");
+                    object sourceKey = keyGetter.Invoke(kvp, null);
                     object clonedKey = onlyKnownEntityKeys
                         ? deepCloneState.GetKnownRef(sourceKey)
                         : sourceKey.DeepClone(deepCloneState);
                     if (clonedKey == null) {
                         continue;
                     }
-                    object clonedValue = kvp.GetPropertyValue("Value").DeepClone(deepCloneState);
+                    object clonedValue = valueGetter.Invoke(kvp, null).DeepClone(deepCloneState);
                     if (clonedKey != null && clonedValue != null) {
-                        addMethod.Invoke(weakTable, [clonedKey, clonedValue]);
+                        args[0] = clonedKey;
+                        args[1] = clonedValue;
+                        addMethod.Invoke(weakTable, args);
                     }
                 }
                 return weakTable;

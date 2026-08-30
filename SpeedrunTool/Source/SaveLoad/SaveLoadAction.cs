@@ -190,7 +190,7 @@ public sealed class SaveLoadAction {
             saveLoadAction.saveState?.Invoke(dict[saveLoadAction.dictionaryId], level);
             if (sw.ElapsedMilliseconds > 10 && EachAction_Profilling) {
                 Logger.Debug($"SpeedrunTool/Save",
-                    $"{sw.ElapsedMilliseconds, 3} ms, " +
+                    $"{sw.ElapsedMilliseconds,3} ms, " +
                     $"{DebugTool.MemoryTracker.FormatDiff(before, DebugTool.MemoryTracker.TakeGcSample(), simplified: true)},    " +
                     $"[{saveLoadAction.dictionaryId}] {saveLoadAction.ActionDescription}");
             }

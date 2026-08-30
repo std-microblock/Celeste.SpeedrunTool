@@ -17,8 +17,8 @@ internal static class MemoryTracker {
         int gc0Diff = after.Gc0 - before.Gc0;
         int gc1Diff = after.Gc1 - before.Gc1;
         int gc2Diff = after.Gc2 - before.Gc2;
-        return simplified ? $"{allocatedDiff / 1024.0 / 1024.0, 7:F2} MB, GC ({gc0Diff}/{gc1Diff}/{gc2Diff})"
-                          : $"{allocatedDiff / 1024.0 / 1024.0, 7:F2} MB,   GC collections: {gc0Diff}/{gc1Diff}/{gc2Diff}";
+        return simplified ? $"{allocatedDiff / 1024.0 / 1024.0,7:F2} MB, GC ({gc0Diff}/{gc1Diff}/{gc2Diff})"
+                          : $"{allocatedDiff / 1024.0 / 1024.0,7:F2} MB,   GC collections: {gc0Diff}/{gc1Diff}/{gc2Diff}";
     }
     public static void CheckFragmentation(string tag) {
         if (!MemoryTracker_CheckFragmentation) {

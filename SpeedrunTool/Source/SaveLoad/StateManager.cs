@@ -226,9 +226,9 @@ public sealed class StateManager {
 
 #if DEBUG
         if (InGame_Profiling) {
-            Logger.Debug("SpeedrunTool", $"{"Save", 20}: {sw.ElapsedMilliseconds,7} ms");
-            Logger.Debug("SpeedrunTool", $"{"Allocated", 20}: {DebugTool.MemoryTracker.FormatDiff(before, DebugTool.MemoryTracker.TakeGcSample(), simplified: false)}");
-            Logger.Debug("SpeedrunTool", $"{"ProcessMemoryUsage", 20}: {Process.GetCurrentProcess().PrivateMemorySize64 / 1024.0 / 1024.0 / 1024.0,7:F2} GB");
+            Logger.Debug("SpeedrunTool", $"{"Save",20}: {sw.ElapsedMilliseconds,7} ms");
+            Logger.Debug("SpeedrunTool", $"{"Allocated",20}: {DebugTool.MemoryTracker.FormatDiff(before, DebugTool.MemoryTracker.TakeGcSample(), simplified: false)}");
+            Logger.Debug("SpeedrunTool", $"{"ProcessMemoryUsage",20}: {Process.GetCurrentProcess().PrivateMemorySize64 / 1024.0 / 1024.0 / 1024.0,7:F2} GB");
         }
         DebugTool.MemoryTracker.CheckFragmentation("Save End");
         if (Log_WhenSaving) {

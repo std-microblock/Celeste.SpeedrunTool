@@ -124,7 +124,9 @@ internal static class BusyIndicator {
             }
             device.Viewport = new Viewport(0, 0, width, height);
             Draw.SpriteBatch = batch ??= new SpriteBatch(device);
-            batch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp,
+            // Backbuffer alpha need not be opaque. Copy its RGB without blending
+            // it over the previous frame, which would brighten each presentation.
+            batch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.LinearClamp,
                 DepthStencilState.None, RasterizerState.CullNone);
             begun = true;
             batch.Draw(background, new Rectangle(0, 0, width, height), Color.White);
